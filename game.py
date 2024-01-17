@@ -181,7 +181,6 @@ def handle_click(pos, board, board_image,turn,switch,dice_roll,on_table):
     # Check if the click is within the bounds of the board
     if (0 <= row < len(board[0]) and 0 <= col < len(board) and
             len(board)>=(pos[1] - 75) / cell_width >= 0 and (pos[0] - 45) / cell_height >= 0) and row !=6:
-        # Implement your logic for handling the click on the board
         print(f"Clicked on row {row}, column {col}")
         on_table[0] = True
         if board[col][row] != 0 :
