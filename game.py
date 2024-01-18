@@ -26,15 +26,16 @@ button_margin = 20
 font = pygame.font.Font(None, 36)
 text_color = BLACK
 
+dice_buff =0
 
 def draw_board():
     screen.blit(board_image, (0, 0))
 def draw_initial_dice():
-    piece_x = 50 + 6 * 54 # identation + row * board cell size 
-    piece_y = 75 
+    piece_x = 50 + 10 * 54 # identation + row * board cell size 
+    piece_y = 10 
     dice_image = pygame.image.load("Images/you_dice_6.png")
     screen.blit(dice_image, (piece_x, piece_y))
-    piece_y += dice_image.get_height()
+    piece_x += dice_image.get_height()
     screen.blit(dice_image, (piece_x, piece_y))  
 
 def draw_initial_pieces(board):
@@ -61,7 +62,7 @@ def draw_initial_pieces(board):
                  screen.blit(piece_image1, (piece_x, piece_y))
                  piece_y += cell_size
                  buff-=1
-             else:
+             elif i==1:
                  piece_x = 45 + j * cell_size
                  piece_y = 610 + i * cell_size
                  buff = board[i][j]
@@ -78,7 +79,7 @@ def draw_initial_pieces(board):
                    screen.blit(piece_image1, (piece_x, piece_y))
                    piece_y -= cell_size
                    buff-=1
-            
+                          
 # Function to draw buttons
 def draw_button(x, y, text, action, selected_button):
     button_rect = pygame.Rect(x, y, button_width, button_height)
@@ -164,23 +165,22 @@ def handle_click(pos, board, board_image,turn,switch,dice_roll,on_table):
     screen_height, screen_width = board_image.get_size()
 
     col,row,cell_width,cell_height = get_board_pos(pos,board,screen_width,screen_height)
-
-    if row == 6 and col ==0 and switch[0] == 1:
+  
+    if 600<=pos[0]<=680 and 10<=pos[1]<=70 and switch[0] == 1:
         dice_roll[0],dice_roll[1] = roll_dice()
         switch[0] = 0
         on_table[0] = False
         print(f" rolled: {dice_roll}")
         piece_x = 50 + row * 54
-        piece_y = 75 + col * 54
+        piece_y = 10 + col * 54
         dice_image1 = pygame.image.load(f"Images/you_dice_{dice_roll[0]}.png")
         dice_image2 = pygame.image.load(f"Images/you_dice_{dice_roll[1]}.png")
         screen.blit(dice_image1, (piece_x, piece_y))
-        piece_y += dice_image1.get_height()
-        screen.blit(dice_image2, (piece_x, piece_y))
-
+        piece_x += dice_image1.get_height()
+        screen.blit(dice_image2, (piece_x, piece_y)) 
     # Check if the click is within the bounds of the board
     if (0 <= row < len(board[0]) and 0 <= col < len(board) and
-            len(board)>=(pos[1] - 75) / cell_width >= 0 and (pos[0] - 45) / cell_height >= 0) and row !=6:
+            len(board)>=(pos[1] - 75) / cell_width >= 0 and (pos[0] - 45) / cell_height >= 0) :
         print(f"Clicked on row {row}, column {col}")
         on_table[0] = True
         if board[col][row] != 0 :
@@ -188,46 +188,367 @@ def handle_click(pos, board, board_image,turn,switch,dice_roll,on_table):
     else:
         on_table[0] = False
         print("Clicked outside of the board")
-
+   
 def roll_dice():
     return random.randint(1, 6), random.randint(1, 6)
+def random_move(board,board_image,turn,switch,dice_roll,on_table,screen_width,screen_height):
+   move_pos = []
+   while(len(move_pos)<2):
+    pos_buffer = (random.randint(800,800),random.randint(800,800))
+    handle_click(pos_buffer,board,board_image,turn,switch,dice_roll,on_table)
+    if(on_table[0]==True):
+       move_pos.append(pos_buffer)
+    
+   return move_pos
+ 
+def move_piece(move, board, screen_width, screen_height, dice):
+    col1, row1, cell_width1, cell_height1 = get_board_pos(move[0], board, screen_width, screen_height)
+    col2, row2, cell_width1, cell_height1 = get_board_pos(move[1], board, screen_width, screen_height)
 
-def move_piece(board, start_row, start_col, roll):
-    # Implement logic to move a piece on the board based on the dice roll
-    pass
+    if board[col1][row1] > 0 and board[col2][row2] >= 0 :
+        board[col2][row2] += 1
+        board[col1][row1] -= 1
+    elif board[col1][row1] > 0 and board[col2][row2] == -1:
+        board[col2][row2] += 2
+        board[col1][row1] -= 1
+        board[1][6] -= 1
+    elif board[col1][row1] < 0 and board[col2][row2] <= -1:
+        board[col1][row1] += 1
+        board[col2][row2] -= 1
+    elif board[col1][row1] < 0 and board[col2][row2] == 1:
+        board[col1][row1] += 1
+        board[col2][row2] -= 2
+        board[0][6] += 1
+    elif board[col1][row1] < 0 and board[col2][row2] == 0:
+        board[col1][row1] += 1
+        board[col2][row2] -= 1
+    elif board[0][6] > 0 and (board[col2][row2] == board[1][dice[1]] or board[col2][row2]==board[1][dice[0]]) and board[col1][row1] == board[0][6] :
+        if(board[col2][row2]>=0):
+         board[0][6] -= 1
+         board[col2][row2] += 1
+        elif board[col2][row2]==-1:
+         board[0][6] -= 1
+         board[col2][row2] += 2
+         board[1][6] -=1
+    elif board [1][6] < 0 and (board[col2][row2] == board[0][dice[1]] or board[col2][row2]==board[0][dice[0]]) and board[col1][row1] == board[0][6]:
+        if(board[col2][row2]==0):
+         board[0][6] += 1
+         board[col2][row2] -= 1
+        elif board[col2][row2]==1:
+         board[0][6] += 1
+         board[col2][row2] -= 2
+         board[0][6] +=1
 
-def check_pieces(board,dice):
-   pass
+    return board
 
-def check_move(move,board,screen_width,screen_height,turn):
-   check = False
+def pull(move, board, screen_width, screen_height,dice,turn):
+    col1, row1, cell_width1, cell_height1 = get_board_pos(move[0], board, screen_width, screen_height)
+    col2, row2, cell_width2, cell_height2 = get_board_pos(move[1], board, screen_width, screen_height)
+    check = False
+    if turn[0] == 1:
+       if board[col1][row1] >0:
+             for i in range(len(board[0])//2):
+                if i == dice[0] :
+                   if board[col1][row1] >0 and col2==0 and 7<=row2<=12:
+                      board[col1][row1] -=1
+                elif i == dice[1] :
+                   if board[col1][row1] >0 and col2==0 and 7<=row2<=12:
+                      board[col1][row1] -=1  
+    elif turn[0] == 2:
+       if board[col1][row1] <0 :
+          for i in range(len(board[0])//2):
+             if i == dice[0] :
+                   if board[col1][row1] <0 and col2==1 and 7<=row2<=12:
+                      board[col1][row1] +=1
+             elif i == dice[1] :
+                   if board[col1][row1] <0 and col2==1 and 7<=row2<=12:
+                      board[col1][row1] +=1 
+        
+def check_move(move,board,screen_width,screen_height,dice,turn):
+   
    col1,row1,cell_width1,cell_height1 = get_board_pos(move[0],board,screen_width,screen_height)
    col2,row2,cell_width1,cell_height1 = get_board_pos(move[1],board,screen_width,screen_height)
-   if board[col1,row1] !=0 and turn[0]:
-      pass  
-   print(col1,row1,col2,row2)
+   check = False
+   dice_buff=0
+   if turn[0]==1 : 
+    if board[col1][row1]>0:
+      if row1 == 6 and board[col2][row2] == board[1][dice[0]-1]:
+         if board[col2][row2] >=0:
+            check = True
+            dice_buff=dice[0]
+         elif board[col2][row2] ==-1:
+            check = True
+            dice_buff=dice[0]
+
+      elif row1 == 6 and board[col2][row2] == board[1][dice[1]-1]:
+         if board[col2][row2] >=0:
+            check = True
+            dice_buff=dice[1]
+         elif board[col2][row2] ==-1:
+            check = True
+            dice_buff=dice[1]
+
+      elif row1 == 6 and board[col2][row2] == board[0][dice[1]-1]:
+         if board[col2][row2] <-1:
+            check = False
+            dice_buff=dice[1]
+
+      elif row1 == 6 and board[col2][row2] == board[0][dice[0]-1]:
+         if board[col2][row2] <-1:
+            check = False
+            dice_buff=dice[1]
+      elif 12-(row1+dice[0]-13) == row2 and col1==1 and col2==0:
+        if board[col2][row2] >=0 :
+          check = True
+          dice_buff=dice[0]
+        elif board[col2][row2] ==-1:
+          check = True 
+          dice_buff=dice[0]
+
+      elif 12-(row1+dice[1]-13) == row2 and col1==1 and col2==0 :
+        if board[col2][row2] >=0 :
+          check = True
+          dice_buff=dice[1]
+        elif board[col2][row2] ==-1:
+          check = True 
+          dice_buff=dice[1]
+
+      elif row1<6 and row1+dice[0]+1==row2 and 6<=row1+dice[0]<12 and col1==col2==1 and row1<row2:
+        if board[col2][row2] >=0 :
+          check = True
+          dice_buff=dice[0]
+        elif board[col2][row2] ==-1:
+          check = True
+          dice_buff=dice[0]
+
+      elif row1>6 and row1-dice[0]-1==row2 and row1-dice[0]-1<=6 and col1==col2==0 and row1>row2:
+        if board[col2][row2] >=0 :
+          check = True
+          dice_buff=dice[0]
+        elif board[col2][row2] ==-1:
+          check = True 
+          dice_buff=dice[0]
+
+      elif row1<6 and row1+dice[1]+1==row2 and 6<=row1+dice[1]+1<12 and col1==col2==1 and row1<row2:
+        if board[col2][row2] >=0 :
+          check = True
+          dice_buff=dice[1]
+        elif board[col2][row2] ==-1:
+          check = True
+          dice_buff=dice[1]
+
+      elif row1>6 and row1-dice[1]-1==row2 and row1-dice[1]-1<=6 and col1==col2==0 and row1>row2:
+        if board[col2][row2] >=0 :
+          check = True
+          dice_buff=dice[1]
+        elif board[col2][row2] ==-1:
+          check = True 
+          dice_buff=dice[1]      
+      elif row1+dice[0] == row2 and col1==col2==1 and row1<row2:
+        if board[col2][row2] >=0 :
+          check = True
+          dice_buff=dice[0]
+        elif board[col2][row2] ==-1:
+          check = True
+          dice_buff=dice[0]
+      elif row1+dice[1]==row2 and col1==col2==1 and row1<row2:
+        if board[col2][row2] >=0 :
+          check = True
+          dice_buff=dice[1]
+        elif board[col2][row2] ==-1:
+          check = True
+          dice_buff=dice[1]
+
+      elif row1-dice[0]==row2 and col1==col2==0 and row1>row2:
+        if board[col2][row2] >=0 :
+          check = True
+          dice_buff=dice[0]
+        elif board[col2][row2] ==-1:
+          check = True
+          dice_buff=dice[0]
+
+      elif row1-dice[1]==row2 and col1==col2==0 and row1>row2:
+        if board[col2][row2] >=0 :
+          check = True
+          dice_buff=dice[1]
+        elif board[col2][row2] ==-1:
+          check = True
+          dice_buff=dice[1]
+
+   elif turn[0]==2:       
+    if board[col1][row1]<0:
+      if row1 == 6 and board[col2][row2] == board[0][dice[0]-1]:
+         if board[col2][row2] <=0:
+            check = True
+            dice_buff=dice[0]
+         elif board[col2][row2] ==1:
+            check = True 
+            dice_buff=dice[0]
+
+      elif row1 == 6 and board[col2][row2] == board[0][dice[1]-1]:
+         if board[col2][row2] <=0:
+            check = True
+            dice_buff=dice[1]
+         elif board[col2][row2] ==1:
+            check = True 
+            dice_buff=dice[1]
+
+      elif row1 == 6 and board[col2][row2] == board[0][dice[0]-1]:
+         if board[col2][row2] >0:
+            check = False
+            dice_buff=dice[1]
+
+      elif row1 == 6 and board[col2][row2] == board[0][dice[1]-1]:
+         if board[col2][row2] >0:
+            check = False
+            dice_buff=dice[0]
+      elif 12-(row1+dice[0]-13) == row2 and col1==0 and col2==1:
+        if board[col2][row2] <=0 :
+          check = True
+          dice_buff=dice[0]
+        elif board[col2][row2] ==1:
+          check = True 
+          dice_buff=dice[0]
+
+      elif 12-(row1+dice[1]-13) == row2 and col1==0 and col2==1:
+        if board[col2][row2] <=0 :
+          check = True
+          dice_buff=dice[1]
+        elif board[col2][row2] ==1:
+          check = True 
+          dice_buff=dice[1]
+
+      elif row1<6 and row1+dice[0]+1==row2  and col1==col2==0 and row1<row2:
+        if board[col2][row2] <=0 :
+          check = True
+          dice_buff=dice[0]
+        elif board[col2][row2] ==1:
+          check = True
+          dice_buff=dice[0]
+
+      elif row1<6 and row1+dice[1]+1==row2  and col1==col2==1 and row1<row2:
+        if board[col2][row2] <=0 :
+          check = True
+          dice_buff=dice[1]
+        elif board[col2][row2] ==1:
+          check = True
+          dice_buff=dice[1]
+
+      elif row1>6 and row1-dice[0]-1==row2 and row1-dice[0]-1<=6 and col1==col2==1 and row1>row2:
+        if board[col2][row2] <=0 :
+          check = True
+          dice_buff=dice[0]
+        elif board[col2][row2] ==1:
+          check = True
+          dice_buff=dice[0]
+
+      elif row1>6 and row1-dice[1]-1==row2 and row1-dice[1]-1<=6 and col1==col2==1 and row1>row2:
+        if board[col2][row2] <=0 :
+          check = True
+          dice_buff=dice[1]
+        elif board[col2][row2] ==1:
+          check = True
+          dice_buff=dice[1]
+                
+      elif row1+dice[0] == row2 and col1==col2==0 and row1<row2:
+        if board[col2][row2] <=0 :
+          check = True
+          dice_buff=dice[0]
+        elif board[col2][row2] ==1:
+          check = True
+          dice_buff=dice[0]
+
+      elif row1+dice[1]==row2  and col1==col2==0 and row1<row2:
+        if board[col2][row2] <=0 :
+          check = True
+          dice_buff=dice[1]
+        elif board[col2][row2] ==1:
+          check = True
+          dice_buff=dice[1]
+
+      elif row1-dice[0]==row2 and col1==col2==1 and row1>row2:
+        if board[col2][row2] <=0 :
+          check = True
+          dice_buff=dice[0]
+        elif board[col2][row2] ==1:
+          check = True
+          dice_buff=dice[0]
+
+      elif row1-dice[1]==row2 and col1==col2==1 and row1>row2:
+        if board[col2][row2] <=0 :
+          check = True
+          dice_buff=dice[1]
+        elif board[col2][row2] ==1:
+          check = True
+          dice_buff=dice[1]
+
+      
+   return check,dice_buff
+def check_winner(board):
+  winner1 = 0
+  winner2 = 0
+  player =0
+  for i in range(len(board)):
+    for j in range(len(board[0])):
+      if board[i][j] >0:
+        winner1 = 1
+  for i in range(len(board)):
+    for j in range(len(board[0])):
+      if board[i][j] <0:
+        winner2 = 2   
+  if(winner1 == 0):
+    player = 1
+  elif(winner2 == 0):
+    player = 2
+  return player
+
+def check_dice(board,dice):
+   check = True
+   aux =0 
+   for j in range(len(board)):
+    for i in range(len(board[0])):
+      if i==dice[0]-1 :
+       if board[j][i] >1 or board[j][i] <-1:
+          aux +=1
+      if i==dice[1]-1 :
+         if board[j][i] >1 or board[j][i] <-1:
+          aux +=1   
+    if aux ==2:
+       check = False
    return check
 
+def check_base(board):
+      suma1 = 0
+      suma2 = 0
+      for j in range(len(board[0])//2) :
+         suma1 += board[0][j]
+      for i in range(len(board[1])//2) :
+         suma2 += board[1][i]
+      if (suma1==15):
+         return suma1
+      else:
+         if(suma2==-15):
+           return suma2
 # Player vs Computer game loop
 def player_vs_computer_game():
     print("Player vs Computer game")
     board = [
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-]
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    ]
     # Set up initial pieces
     board[0][0] = -2
-    board[0][5] = 5  
+    board[0][5] = 5
     board[0][8] = 3
-    board[0][12] = -5  
-    board[1][5] = -5  
+    board[0][12] = -5
+    board[1][5] = -5
     board[1][8] = -3
     board[1][0] = 2
-    board[1][12] = 5 
+    board[1][12] = 5
 
     font = pygame.font.SysFont('Arial', 20)
 
-    screen.fill((255, 255, 255))  
+    screen.fill((255, 255, 255))
     draw_board()
     draw_initial_pieces(board)
     draw_initial_dice()
@@ -235,42 +556,182 @@ def player_vs_computer_game():
     pygame.display.flip()
     pygame.time.Clock().tick(60)
 
-    turn = 1
+    turn = [1]  # White turn
+    text = font.render(f"Turn: Player {turn[0]}", True, (0, 0, 0))
+    pygame.draw.rect(screen, WHITE, (10, 10, 130, 30))
+    screen.blit(text, (10, 10))
 
+    message_font = pygame.font.SysFont('Arial', 20)
+    message_rect = pygame.Rect(150, 10, 380, 30)
+
+    switch = [1]
+    dice_roll = [0, 0]
+    move_pos = []
+    moves1=2
+    moves2=4
     while True:
+     if check_winner(board) == 1:
+      pygame.draw.rect(screen, WHITE, message_rect)
+      text = message_font.render("Player 1 wins", True, BLACK)
+      screen.blit(text, message_rect.topleft)
+     elif check_winner(board) == 2:
+      pygame.draw.rect(screen, WHITE, message_rect)
+      text = message_font.render("Player 2 wins", True, BLACK)
+      screen.blit(text, message_rect.topleft) 
+     on_table = [False]
      for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            handle_click(pygame.mouse.get_pos(),board,board_image,turn)
-            turn = 2 if turn == 1 else 1 
-     text = font.render(f"Turn: Player {turn}", True, (0, 0, 0))
-     pygame.draw.rect(screen, WHITE, (10, 10, 130, 30))
-     screen.blit(text, (10, 10))
+          pos_buff = pygame.mouse.get_pos()
+          handle_click(pos_buff,board,board_image,turn,switch,dice_roll,on_table)
+          if turn[0]==1:
+           if check_dice(board,dice_roll):
+            if dice_roll[0]!=dice_roll[1]: 
+              if on_table[0] == True:
+                move_pos.append(pos_buff)
+                print(move_pos)
+                if(len(move_pos)==2):
+                     if check_base(board)==15 or check_base(board) ==-15:
+                         pull(move_pos,board,width,height,dice_roll,turn)
+                         draw_board()
+                         draw_initial_pieces(board)
+                         piece_x = 50 + 10 * 54 # identation + row * board cell size 
+                         piece_y = 10
+                         dice_image1 = pygame.image.load(f"Images/you_dice_{dice_roll[0] if dice_roll[0] !=0 else dice_buff}.png")
+                         dice_image2 = pygame.image.load(f"Images/you_dice_{dice_roll[1] if dice_roll[1] !=0 else dice_buff}.png")
+                         screen.blit(dice_image1, (piece_x, piece_y))
+                         piece_x += dice_image1.get_height()
+                         screen.blit(dice_image2, (piece_x, piece_y))
+                         text = font.render(f"Turn: Player {turn[0]}", True, (0, 0, 0))
+                         pygame.draw.rect(screen, WHITE, (10, 10, 130, 30))
+                         screen.blit(text, (10, 10))
+                         print(check_move(move_pos,board,width,height,dice_roll,turn),moves1)
+                         moves1 -= 1
+                     else:
+                         switch =0
+                         turn[0] = 2 if turn[0] == 1 else 1
+                else:  
+                         pygame.draw.rect(screen, WHITE, message_rect)
+                         text = message_font.render("Invalid Move! Try Again!", True, BLACK)
+                         screen.blit(text, message_rect.topleft)
+                move_pos = []
+                check,dice_buff = check_move(move_pos,board,width,height,dice_roll,turn)
+
+                if check==True:
+                   if(dice_buff==dice_roll[0]):
+                        dice_roll[0] =0
+                   elif dice_buff==dice_roll[1]:
+                         dice_roll[1] =0
+                   board = move_piece(move_pos,board,width,height,dice_roll)
+                   check_dice(board,dice_roll)
+                   draw_board()
+                   draw_initial_pieces(board)
+                   piece_x = 50 + 10 * 54 # identation + row * board cell size 
+                   piece_y = 10
+                   dice_image1 = pygame.image.load(f"Images/you_dice_{dice_roll[0] if dice_roll[0] !=0 else dice_buff}.png")
+                   dice_image2 = pygame.image.load(f"Images/you_dice_{dice_roll[1] if dice_roll[1] !=0 else dice_buff}.png")
+                   screen.blit(dice_image1, (piece_x, piece_y))
+                   piece_x += dice_image1.get_height()
+                   screen.blit(dice_image2, (piece_x, piece_y))
+                   text = font.render(f"Turn: Player {turn[0]}", True, (0, 0, 0))
+                   pygame.draw.rect(screen, WHITE, (10, 10, 130, 30))
+                   screen.blit(text, (10, 10))
+                   print(check_move(move_pos,board,width,height,dice_roll,turn),moves1)
+                   moves1 -= 1
+            elif dice_roll[0]==dice_roll[1]:
+              if on_table[0] == True:
+                move_pos.append(pos_buff)
+                print(move_pos)
+              if(len(move_pos)==2):
+                  check,dice_buff = check_move(move_pos,board,width,height,dice_roll,turn)
+                  if check==True:
+                    if(dice_buff==dice_roll[0]):
+                        dice_roll[0] =0
+                    elif dice_buff==dice_roll[1]:
+                         dice_roll[1] =0  
+                    board = move_piece(move_pos,board,width,height,dice_roll)
+                    draw_board()
+                    draw_initial_pieces(board)
+                    piece_x = 50 + 10 * 54 # identation + row * board cell size 
+                    piece_y = 10
+                    dice_image1 = pygame.image.load(f"Images/you_dice_{dice_roll[0] if dice_roll[0] !=0 else dice_buff}.png")
+                    dice_image2 = pygame.image.load(f"Images/you_dice_{dice_roll[1] if dice_roll[1] !=0 else dice_buff}.png")
+                    screen.blit(dice_image1, (piece_x, piece_y))
+                    piece_x += dice_image1.get_height()
+                    screen.blit(dice_image2, (piece_x, piece_y))
+                    text = font.render(f"Turn: Player {turn[0]}", True, (0, 0, 0))
+                    pygame.draw.rect(screen, WHITE, (10, 10, 130, 30))
+                    screen.blit(text, (10, 10))
+                    moves2 -= 1
+                  else:  
+                    pygame.draw.rect(screen, WHITE, message_rect)
+                    text = message_font.render("Invalid Move! Try Again!", True, BLACK)
+                    screen.blit(text, message_rect.topleft)
+                  move_pos = []
+           else:
+              switch = 0 
+              turn[0] = 2 if turn[0] == 1 else 1
+          elif(turn[0] ==2):
+              check = False
+              while(check==False):
+                 move_pos = random_move(board,board_image,turn,switch,dice_roll,on_table,width,height)
+                 if check_move(move_pos,board,width,height,dice_roll,turn):
+                  check = True
+                  if(dice_buff==dice_roll[0]):
+                        dice_roll[0] =0
+                  elif dice_buff==dice_roll[1]:
+                         dice_buff[1] =0  
+                  board = move_piece(move_pos,board,width,height,dice_roll)
+                  draw_board()
+                  draw_initial_pieces(board)
+                  piece_x = 50 + 10 * 54 # identation + row * board cell size 
+                  piece_y = 10
+                  dice_image1 = pygame.image.load(f"Images/you_dice_{dice_roll[0]}.png")
+                  dice_image2 = pygame.image.load(f"Images/you_dice_{dice_roll[1]}.png")
+                  screen.blit(dice_image1, (piece_x, piece_y))
+                  piece_x += dice_image1.get_height()
+                  screen.blit(dice_image2, (piece_x, piece_y))
+                  text = font.render(f"Turn: Player {turn[0]}", True, (0, 0, 0))
+                  pygame.draw.rect(screen, WHITE, (10, 10, 130, 30))
+                  screen.blit(text, (10, 10))
+                  print(check_move(move_pos,board,width,height,dice_roll,turn),moves2)
+                  moves2 -= 1
+                 move_pos = []  
+          if moves1 == 0 or moves2 == 0:
+               moves1=2
+               moves2=4
+               turn[0] = 2 if turn[0] == 1 else 1
+               switch[0]=1
+               text = font.render(f"Turn: Player {turn[0]}", True, (0, 0, 0))
+               pygame.draw.rect(screen, WHITE, (10, 10, 130, 30))
+               screen.blit(text, (10, 10))
+
      pygame.display.flip()
-     pygame.time.Clock().tick(60)
+     pygame.time.Clock().tick(60) 
 
 # Player vs Player game loop
 def player_vs_player_game():
     print("Player vs Player game")
     board = [
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-]
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    ]
     # Set up initial pieces
+    
     board[0][0] = -2
-    board[0][5] = 5  
+    board[0][5] = 5
     board[0][8] = 3
-    board[0][12] = -5  
-    board[1][5] = -5  
+    board[0][12] = -5
+    board[1][5] = -5
     board[1][8] = -3
     board[1][0] = 2
-    board[1][12] = 5 
+    board[1][12] = 5
 
     font = pygame.font.SysFont('Arial', 20)
 
-    screen.fill((255, 255, 255))  
+    screen.fill((255, 255, 255))
     draw_board()
     draw_initial_pieces(board)
     draw_initial_dice()
@@ -278,16 +739,28 @@ def player_vs_player_game():
     pygame.display.flip()
     pygame.time.Clock().tick(60)
 
-    turn = [1] # White turn 
+    turn = [1]  # White turn
     text = font.render(f"Turn: Player {turn[0]}", True, (0, 0, 0))
     pygame.draw.rect(screen, WHITE, (10, 10, 130, 30))
     screen.blit(text, (10, 10))
 
-    switch = [1]
-    dice_roll = [0,0]
-    move_pos = []
+    message_font = pygame.font.SysFont('Arial', 20)
+    message_rect = pygame.Rect(150, 10, 380, 30)
 
+    switch = [1]
+    dice_roll = [0, 0]
+    move_pos = []
+    moves1=2
+    moves2=4
     while True:
+     if check_winner(board) == 1:
+        pygame.draw.rect(screen, WHITE, message_rect)
+        text = message_font.render("Player 1 wins", True, BLACK)
+        screen.blit(text, message_rect.topleft)
+     elif check_winner(board) == 2:
+         pygame.draw.rect(screen, WHITE, message_rect)
+         text = message_font.render("Player 2 wins", True, BLACK)
+         screen.blit(text, message_rect.topleft) 
      on_table = [False]
      for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -296,23 +769,81 @@ def player_vs_player_game():
         elif event.type == pygame.MOUSEBUTTONDOWN:
             pos_buff = pygame.mouse.get_pos()
             handle_click(pos_buff,board,board_image,turn,switch,dice_roll,on_table)
-            if on_table[0] == True:
-               move_pos.append(pos_buff)
-            if(len(move_pos)==2):
-               move_validation = check_move(move_pos,board,width,height)  
-               move_pos = []
-     if(turn[0] == 2):
-       switch[0] = 1
-       text = font.render(f"Turn: Player {turn[0]}", True, (0, 0, 0))
-       pygame.draw.rect(screen, WHITE, (10, 10, 130, 30))
-       screen.blit(text, (10, 10))
+            if dice_roll[0]!=dice_roll[1]: 
+              if on_table[0] == True:
+                move_pos.append(pos_buff)
+                print(move_pos)
+              if(len(move_pos)==2):
+                if check_base(board)==15:
+                     pull(move_pos,board,width,height,dice_roll,turn)
+                elif check_base(board)==-15:
+                     pull(move_pos,board,width,height,dice_roll,turn)
+                check,dice_buff = check_move(move_pos,board,width,height,dice_roll,turn)
+                if check==True:
+                   if(dice_buff==dice_roll[0]):
+                        dice_roll[0] =0
+                   elif dice_buff==dice_roll[1]:
+                         dice_roll[1] =0
+                   board = move_piece(move_pos,board,width,height,dice_roll)
+                   draw_board()
+                   draw_initial_pieces(board)
+                   piece_x = 50 + 10 * 54 # identation + row * board cell size 
+                   piece_y = 10
+                   dice_image1 = pygame.image.load(f"Images/you_dice_{dice_roll[0] if dice_roll[0] !=0 else dice_buff}.png")
+                   dice_image2 = pygame.image.load(f"Images/you_dice_{dice_roll[1] if dice_roll[1] !=0 else dice_buff}.png")
+                   screen.blit(dice_image1, (piece_x, piece_y))
+                   piece_x += dice_image1.get_height()
+                   screen.blit(dice_image2, (piece_x, piece_y))
+                   text = font.render(f"Turn: Player {turn[0]}", True, (0, 0, 0))
+                   pygame.draw.rect(screen, WHITE, (10, 10, 130, 30))
+                   screen.blit(text, (10, 10))
+                   print(check_move(move_pos,board,width,height,dice_roll,turn),moves1)
+                   moves1 -= 1
+                else:  
+                    pygame.draw.rect(screen, WHITE, message_rect)
+                    text = message_font.render("Invalid Move! Try Again!", True, BLACK)
+                    screen.blit(text, message_rect.topleft)
+                move_pos = []
+            elif dice_roll[0]==dice_roll[1]:
+              if on_table[0] == True:
+                move_pos.append(pos_buff)
+                print(move_pos)
+              if(len(move_pos)==2):
+                  check,dice_buff = check_move(move_pos,board,width,height,dice_roll,turn)
+                  if check==True:
+                    board = move_piece(move_pos,board,width,height,dice_roll)
+                    draw_board()
+                    draw_initial_pieces(board)
+                    piece_x = 50 + 10 * 54 # identation + row * board cell size 
+                    piece_y = 10
+                    dice_image1 = pygame.image.load(f"Images/you_dice_{dice_roll[0] }.png")
+                    dice_image2 = pygame.image.load(f"Images/you_dice_{dice_roll[1] }.png")
+                    screen.blit(dice_image1, (piece_x, piece_y))
+                    piece_x += dice_image1.get_height()
+                    screen.blit(dice_image2, (piece_x, piece_y))
+                    text = font.render(f"Turn: Player {turn[0]}", True, (0, 0, 0))
+                    pygame.draw.rect(screen, WHITE, (10, 10, 130, 30))
+                    screen.blit(text, (10, 10))
+                    moves2 -= 1
+                  else:  
+                    pygame.draw.rect(screen, WHITE, message_rect)
+                    text = message_font.render("Invalid Move! Try Again!", True, BLACK)
+                    screen.blit(text, message_rect.topleft)
+                  move_pos = []
+            if moves1 == 0 or moves2 == 0:
+               moves1=2
+               moves2=4
+               turn[0] = 2 if turn[0] == 1 else 1
+               switch[0]=1
+               text = font.render(f"Turn: Player {turn[0]}", True, (0, 0, 0))
+               pygame.draw.rect(screen, WHITE, (10, 10, 130, 30))
+               screen.blit(text, (10, 10))   
      pygame.display.flip()
-     pygame.time.Clock().tick(60)        
+     pygame.time.Clock().tick(60) 
 
 # Main program loop
 while True:
     selected_option = main_menu()
-
     if selected_option == "player_vs_computer":
         player_vs_computer_game()
     elif selected_option == "player_vs_player":
