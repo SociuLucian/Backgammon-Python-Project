@@ -235,49 +235,41 @@ def move_piece(move, board, screen_width, screen_height, dice):
          board[1][6] -=1
     elif board [1][6] < 0 and (board[col2][row2] == board[0][dice[1]] or board[col2][row2]==board[0][dice[0]]) and board[col1][row1] == board[0][6]:
         if(board[col2][row2]==0):
-         board[0][6] += 1
+         board[1][6] += 1
          board[col2][row2] -= 1
         elif board[col2][row2]==1:
-         board[0][6] += 1
+         board[1][6] += 1
          board[col2][row2] -= 2
-         board[0][6] +=1
 
     return board
 
-def pull(move, board, screen_width, screen_height,dice,turn):
-    col1, row1, cell_width1, cell_height1 = get_board_pos(move[0], board, screen_width, screen_height)
-    col2, row2, cell_width2, cell_height2 = get_board_pos(move[1], board, screen_width, screen_height)
+def pull(pos, board, screen_width, screen_height,dice,turn):
+    col1, row1, cell_width1, cell_height1 = get_board_pos(pos, board, screen_width, screen_height)
     check = False
     if turn[0] == 1:
        if board[col1][row1] >0:
-             for i in range(len(board[0])//2):
-                if i == dice[0] :
-                   if board[col1][row1] >0 and col2==0 and 7<=row2<=12:
+                if board[col1][row1] == dice[0] -1 :
                       board[col1][row1] -=1
-                elif i == dice[1] :
-                   if board[col1][row1] >0 and col2==0 and 7<=row2<=12:
+                elif board[col1][row1] == dice[1] -1 :
                       board[col1][row1] -=1  
     elif turn[0] == 2:
        if board[col1][row1] <0 :
-          for i in range(len(board[0])//2):
-             if i == dice[0] :
-                   if board[col1][row1] <0 and col2==1 and 7<=row2<=12:
+             if board[col1][row1] == dice[0] -1:
                       board[col1][row1] +=1
-             elif i == dice[1] :
-                   if board[col1][row1] <0 and col2==1 and 7<=row2<=12:
+             elif board[col1][row1] == dice[1] -1 :
                       board[col1][row1] +=1 
 
 def helper(row1,row2,dice):
-       for i in range(row1,row1 + dice[0]):
+       for i in range(row1,row1 + dice[0]+1):
          if i==6 and row1 < 6 and row2>6:
             return 1
-       for i in range(row1,row1 + dice[1]):
+       for i in range(row1,row1 + dice[1]+1):
          if i==6 and row1<6 and row2>6:
            return 1
-       for i in range(row1-dice[0],row1):
+       for i in range(row1-dice[0]-1,row1):
          if i==6 and row1>6 and row2<6:
            return 1
-       for i in range(row1-dice[1],row1):
+       for i in range(row1-dice[1]-1,row1):
          if i==6 and row1>6 and row2<6:
            return 1
        return 0       
@@ -290,229 +282,290 @@ def check_move(move,board,screen_width,screen_height,dice,turn):
    dice_buff=0
     
    if turn[0]==1 : 
-        if board[col1][row1]>0:
-          if row1 == 6 and col2 == 1 and row2 == dice[0]-1 :
-            if board[col2][row2] >=0:
-                check = True
-                dice_buff=dice[0]
-            elif board[col2][row2] ==-1:
-                check = True
-                dice_buff=dice[0]
-
-          elif row1 == 6 and col2 == 1 and row2 == dice[1]-1:
-            if board[col2][row2] >=0:
-                check = True
-                dice_buff=dice[1]
-            elif board[col2][row2] ==-1:
-                check = True
-                dice_buff=dice[1]
-
-          elif row1 == 6 and col2 == 1 and row2 == dice[1]-1:
-            if board[col2][row2] <-1:
-                check = False
-                dice_buff=dice[1]
-
-          elif row1 == 6 and col2 == 1 and row2 == dice[0]-1:
-            if board[col2][row2] <-1:
-                check = False
-                dice_buff=dice[1]
-                
-          elif 12-(row1+dice[0]-13) == row2 and col1==1 and col2==0 :
-            if board[col2][row2] >=0 :
+     if board[0][6] > 0 :
+       if row1 == 6 and col2 == 1 and row2 == dice[0]-1 :
+          if board[col2][row2] >=0:
               check = True
               dice_buff=dice[0]
-            elif board[col2][row2] ==-1:
-              check = True 
+          elif board[col2][row2] ==-1:
+              check = True
               dice_buff=dice[0]
 
-          elif 12-(row1+dice[1]-13) == row2 and col1==1 and col2==0 :
-            if board[col2][row2] >=0 :
+       elif row1 == 6 and col2 == 1 and row2 == dice[1]-1:
+          if board[col2][row2] >=0:
               check = True
               dice_buff=dice[1]
-            elif board[col2][row2] ==-1:
-              check = True 
-              dice_buff=dice[1]
-
-          elif row1<6 and row1+dice[0]+1==row2 and 6<=row1+dice[0]<12 and col1==col2==1 and row1<row2 and row2!=6 and row1!=6:
-            if board[col2][row2] >=0 :
-              check = True
-              dice_buff=dice[0]
-            elif board[col2][row2] ==-1:
-              check = True
-              dice_buff=dice[0]
-
-          elif row1>6 and row1-dice[0]-1==row2 and row1-dice[0]-1<=6 and col1==col2==0 and row1>row2 and row2!=6 and row1!=6:
-            if board[col2][row2] >=0 :
-              check = True
-              dice_buff=dice[0]
-            elif board[col2][row2] ==-1:
-              check = True 
-              dice_buff=dice[0]
-
-          elif row1<6 and row1+dice[1]+1==row2 and 6<=row1+dice[1]+1<12 and col1==col2==1 and row1<row2 and row2!=6 and row1!=6:
-            if board[col2][row2] >=0 :
-              check = True
-              dice_buff=dice[1]
-            elif board[col2][row2] ==-1:
+          elif board[col2][row2] ==-1:
               check = True
               dice_buff=dice[1]
 
-          elif row1>6 and row1-dice[1]-1==row2 and row1-dice[1]-1<=6 and col1==col2==0 and row1>row2 and row2!=6 and row1!=6:
-            if board[col2][row2] >=0 :
-              check = True
+       elif row1 == 6 and col2 == 1 and row2 == dice[1]-1:
+          if board[col2][row2] <-1:
+              check = False
               dice_buff=dice[1]
-            elif board[col2][row2] ==-1:
-              check = True 
-              dice_buff=dice[1]  
+
+       elif row1 == 6 and col2 == 1 and row2 == dice[0]-1:
+          if board[col2][row2] <-1:
+              check = False
+              dice_buff=dice[1]
+     else:
+              if board[col1][row1]>0:
+                if row1 == 6 and col2 == 1 and row2 == dice[0]-1 :
+                  if board[col2][row2] >=0:
+                      check = True
+                      dice_buff=dice[0]
+                  elif board[col2][row2] ==-1:
+                      check = True
+                      dice_buff=dice[0]
+
+                elif row1 == 6 and col2 == 1 and row2 == dice[1]-1:
+                  if board[col2][row2] >=0:
+                      check = True
+                      dice_buff=dice[1]
+                  elif board[col2][row2] ==-1:
+                      check = True
+                      dice_buff=dice[1]
+
+                elif row1 == 6 and col2 == 1 and row2 == dice[1]-1:
+                  if board[col2][row2] <-1:
+                      check = False
+                      dice_buff=dice[1]
+
+                elif row1 == 6 and col2 == 1 and row2 == dice[0]-1:
+                  if board[col2][row2] <-1:
+                      check = False
+                      dice_buff=dice[1]
+                      
+                elif 12-(row1+dice[0]-13) == row2 and col1==1 and col2==0 :
+                  if board[col2][row2] >=0 :
+                    check = True
+                    dice_buff=dice[0]
+                  elif board[col2][row2] ==-1:
+                    check = True 
+                    dice_buff=dice[0]
+
+                elif 12-(row1+dice[1]-13) == row2 and col1==1 and col2==0 :
+                  if board[col2][row2] >=0 :
+                    check = True
+                    dice_buff=dice[1]
+                  elif board[col2][row2] ==-1:
+                    check = True 
+                    dice_buff=dice[1]
+
+                elif row1<6 and row1+dice[0]+1==row2 and 6<=row1+dice[0]<12 and col1==col2==1 and row1<row2 and row2!=6 and row1!=6:
+                  if helper(row1,row2,dice)==1:
+                    if board[col2][row2] >=0 :
+                      check = True
+                      dice_buff=dice[0]
+                    elif board[col2][row2] ==-1:
+                      check = True
+                      dice_buff=dice[0]
+
+                elif row1>6 and row1-dice[0]-1==row2 and row1-dice[0]-1<=6 and col1==col2==0 and row1>row2 and row2!=6 and row1!=6:
+                  if helper(row1,row2,dice)==1: 
+                    if board[col2][row2] >=0 :
+                      check = True
+                      dice_buff=dice[0]
+                    elif board[col2][row2] ==-1:
+                      check = True 
+                      dice_buff=dice[0]
+
+                elif row1<6 and row1+dice[1]+1==row2 and 6<=row1+dice[1]+1<12 and col1==col2==1 and row1<row2 and row2!=6 and row1!=6:
+                  if helper(row1,row2,dice)==1:  
+                    if board[col2][row2] >=0 :
+                      check = True
+                      dice_buff=dice[1]
+                    elif board[col2][row2] ==-1:
+                      check = True
+                      dice_buff=dice[1]
+
+                elif row1>6 and row1-dice[1]-1==row2 and row1-dice[1]-1<=6 and col1==col2==0 and row1>row2 and row2!=6 and row1!=6:
+                  if helper(row1,row2,dice)==1:
+                    if board[col2][row2] >=0 :
+                      check = True
+                      dice_buff=dice[1]
+                    elif board[col2][row2] ==-1:
+                      check = True 
+                      dice_buff=dice[1]  
+                        
+                elif row1+dice[0] == row2 and col1==col2==1 and row1<row2 and row2!=6 and row1!=6:
+                  if helper(row1,row2,dice)==0:
+                    if board[col2][row2] >=0 :
+                      check = True
+                      dice_buff=dice[0]
+                    elif board[col2][row2] ==-1:
+                      check = True
+                      dice_buff=dice[0]
+                    
+                elif row1+dice[1]==row2 and col1==col2==1 and row1<row2 and row2!=6 and row1!=6:
+                  if helper(row1,row2,dice)==0:
+                    if board[col2][row2] >=0 :
+                      check = True
+                      dice_buff=dice[1]
+                    elif board[col2][row2] ==-1:
+                      check = True
+                      dice_buff=dice[1]
+
+                elif row1-dice[0]==row2 and col1==col2==0 and row1>row2 and row2!=6 and row1!=6:
+                  if helper(row1,row2,dice)==0:
+                    if board[col2][row2] >=0 :
+                      check = True
+                      dice_buff=dice[0]
+                    elif board[col2][row2] ==-1:
+                      check = True
+                      dice_buff=dice[0]
+
+                elif row1-dice[1]==row2 and col1==col2==0 and row1>row2 and row2!=6 and row1!=6:
+                  if helper(row1,row2,dice)==0:
+                    if board[col2][row2] >=0 :
+                      check = True
+                      dice_buff=dice[1]
+                    elif board[col2][row2] ==-1:
+                      check = True
+                      dice_buff=dice[1]
+
+   elif turn[0]==2: 
+     if board[1][6] <0:
+        if row1 == 6 and col2 == 0 and row2 == dice[0]-1 :
+              if board[col2][row2] <=0:
+                  check = True
+                  dice_buff=dice[0]
+              elif board[col2][row2] ==1:
+                  check = True 
+                  dice_buff=dice[0]
+
+        elif row1 == 6 and col2 == 0 and row2 == dice[1]-1:
+              if board[col2][row2] <=0:
+                  check = True
+                  dice_buff=dice[1]
+              elif board[col2][row2] ==1:
+                  check = True 
+                  dice_buff=dice[1]
+
+        elif row1 == 6 and col2 == 0 and row2 == dice[0]-1:
+              if board[col2][row2] >0:
+                  check = False
+                  dice_buff=dice[1]
+
+        elif row1 == 6 and col2 == 0 and row2 == dice[1]-1:
+              if board[col2][row2] >0:
+                  check = False
+                  dice_buff=dice[0] 
+     else:    
+          if board[col1][row1]<0:
+            if row1 == 6 and col2 == 0 and row2 == dice[0]-1 :
+              if board[col2][row2] <=0:
+                  check = True
+                  dice_buff=dice[0]
+              elif board[col2][row2] ==1:
+                  check = True 
+                  dice_buff=dice[0]
+
+            elif row1 == 6 and col2 == 0 and row2 == dice[1]-1:
+              if board[col2][row2] <=0:
+                  check = True
+                  dice_buff=dice[1]
+              elif board[col2][row2] ==1:
+                  check = True 
+                  dice_buff=dice[1]
+
+            elif row1 == 6 and col2 == 0 and row2 == dice[0]-1:
+              if board[col2][row2] >0:
+                  check = False
+                  dice_buff=dice[1]
+
+            elif row1 == 6 and col2 == 0 and row2 == dice[1]-1:
+              if board[col2][row2] >0:
+                  check = False
+                  dice_buff=dice[0]
                   
-          elif row1+dice[0] == row2 and col1==col2==1 and row1<row2 and row2!=6 and row1!=6:
-            if helper(row1,row2,dice)==0:
-              if board[col2][row2] >=0 :
+            elif 12-(row1+dice[0]-13) == row2 and col1==0 and col2==1 :
+              if board[col2][row2] <=0 :
                 check = True
                 dice_buff=dice[0]
-              elif board[col2][row2] ==-1:
-                check = True
-                dice_buff=dice[0]
-              
-          elif row1+dice[1]==row2 and col1==col2==1 and row1<row2 and row2!=6 and row1!=6:
-            if helper(row1,row2,dice)==0:
-              if board[col2][row2] >=0 :
-                check = True
-                dice_buff=dice[1]
-              elif board[col2][row2] ==-1:
-                check = True
-                dice_buff=dice[1]
-
-          elif row1-dice[0]==row2 and col1==col2==0 and row1>row2 and row2!=6 and row1!=6:
-            if helper(row1,row2,dice)==0:
-              if board[col2][row2] >=0 :
-                check = True
-                dice_buff=dice[0]
-              elif board[col2][row2] ==-1:
-                check = True
+              elif board[col2][row2] ==1:
+                check = True 
                 dice_buff=dice[0]
 
-          elif row1-dice[1]==row2 and col1==col2==0 and row1>row2 and row2!=6 and row1!=6:
-            if helper(row1,row2,dice)==0:
-              if board[col2][row2] >=0 :
+            elif 12-(row1+dice[1]-13) == row2 and col1==0 and col2==1:
+              if board[col2][row2] <=0 :
                 check = True
                 dice_buff=dice[1]
-              elif board[col2][row2] ==-1:
-                check = True
+              elif board[col2][row2] ==1:
+                check = True 
                 dice_buff=dice[1]
 
-   elif turn[0]==2:       
-    if board[col1][row1]<0:
-      if row1 == 6 and col2 == 0 and row2 == dice[0]-1 :
-         if board[col2][row2] <=0:
-            check = True
-            dice_buff=dice[0]
-         elif board[col2][row2] ==1:
-            check = True 
-            dice_buff=dice[0]
+            elif row1<6 and row1+dice[0]+1==row2  and col1==col2==0 and row1<row2 and row2!=6 and row1!=6:
+              if helper(row1,row2,dice)==1:  
+                if board[col2][row2] <=0 :
+                  check = True
+                  dice_buff=dice[0]
+                elif board[col2][row2] ==1:
+                  check = True
+                  dice_buff=dice[0]
 
-      elif row1 == 6 and col2 == 0 and row2 == dice[1]-1:
-         if board[col2][row2] <=0:
-            check = True
-            dice_buff=dice[1]
-         elif board[col2][row2] ==1:
-            check = True 
-            dice_buff=dice[1]
+            elif row1<6 and row1+dice[1]+1==row2  and col1==col2==0 and row1<row2 and row2!=6 and row1!=6:
+              if helper(row1,row2,dice)==1: 
+                if board[col2][row2] <=0 :
+                  check = True
+                  dice_buff=dice[1]
+                elif board[col2][row2] ==1:
+                  check = True
+                  dice_buff=dice[1]
 
-      elif row1 == 6 and col2 == 0 and row2 == dice[0]-1:
-         if board[col2][row2] >0:
-            check = False
-            dice_buff=dice[1]
+            elif row1>6 and row1-dice[0]-1==row2 and row1-dice[0]-1<=6 and col1==col2==1 and row1>row2 and row2!=6 and row1!=6:
+              if helper(row1,row2,dice)==1:  
+                if board[col2][row2] <=0 :
+                  check = True
+                  dice_buff=dice[0]
+                elif board[col2][row2] ==1:
+                  check = True
+                  dice_buff=dice[0]
 
-      elif row1 == 6 and col2 == 0 and row2 == dice[1]-1:
-         if board[col2][row2] >0:
-            check = False
-            dice_buff=dice[0]
-            
-      elif 12-(row1+dice[0]-13) == row2 and col1==0 and col2==1 :
-        if board[col2][row2] <=0 :
-          check = True
-          dice_buff=dice[0]
-        elif board[col2][row2] ==1:
-          check = True 
-          dice_buff=dice[0]
+            elif row1>6 and row1-dice[1]-1==row2 and row1-dice[1]-1<=6 and col1==col2==1 and row1>row2 and row2!=6 and row1!=6:
+              if helper(row1,row2,dice)==1:  
+                if board[col2][row2] <=0 :
+                  check = True
+                  dice_buff=dice[1]
+                elif board[col2][row2] ==1:
+                  check = True
+                  dice_buff=dice[1]
+                      
+            elif row1+dice[0] == row2 and col1==col2==0 and row1<row2 and row2!=6 and row1!=6:
+              if helper(row1,row2,dice)==0:
+                if board[col2][row2] <=0 :
+                  check = True
+                  dice_buff=dice[0]
+                elif board[col2][row2] ==1:
+                  check = True
+                  dice_buff=dice[0]
 
-      elif 12-(row1+dice[1]-13) == row2 and col1==0 and col2==1:
-        if board[col2][row2] <=0 :
-          check = True
-          dice_buff=dice[1]
-        elif board[col2][row2] ==1:
-          check = True 
-          dice_buff=dice[1]
+            elif row1+dice[1]==row2  and col1==col2==0 and row1<row2 and row2!=6 and row1!=6:
+              if helper(row1,row2,dice)==0:
+                if board[col2][row2] <=0 :
+                  check = True
+                  dice_buff=dice[1]
+                elif board[col2][row2] ==1:
+                  check = True
+                  dice_buff=dice[1]
 
-      elif row1<6 and row1+dice[0]+1==row2  and col1==col2==0 and row1<row2 and row2!=6 and row1!=6:
-        if board[col2][row2] <=0 :
-          check = True
-          dice_buff=dice[0]
-        elif board[col2][row2] ==1:
-          check = True
-          dice_buff=dice[0]
+            elif row1-dice[0]==row2 and col1==col2==1 and row1>row2 and row2!=6 and row1!=6:
+              if helper(row1,row2,dice)==0:
+                if board[col2][row2] <=0 :
+                  check = True
+                  dice_buff=dice[0]
+                elif board[col2][row2] ==1:
+                  check = True
+                  dice_buff=dice[0]
 
-      elif row1<6 and row1+dice[1]+1==row2  and col1==col2==0 and row1<row2 and row2!=6 and row1!=6:
-        if board[col2][row2] <=0 :
-          check = True
-          dice_buff=dice[1]
-        elif board[col2][row2] ==1:
-          check = True
-          dice_buff=dice[1]
-
-      elif row1>6 and row1-dice[0]-1==row2 and row1-dice[0]-1<=6 and col1==col2==1 and row1>row2 and row2!=6 and row1!=6:
-        if board[col2][row2] <=0 :
-          check = True
-          dice_buff=dice[0]
-        elif board[col2][row2] ==1:
-          check = True
-          dice_buff=dice[0]
-
-      elif row1>6 and row1-dice[1]-1==row2 and row1-dice[1]-1<=6 and col1==col2==1 and row1>row2 and row2!=6 and row1!=6:
-        if board[col2][row2] <=0 :
-          check = True
-          dice_buff=dice[1]
-        elif board[col2][row2] ==1:
-          check = True
-          dice_buff=dice[1]
-                
-      elif row1+dice[0] == row2 and col1==col2==0 and row1<row2 and row2!=6 and row1!=6:
-        if helper(row1,row2,dice)==0:
-          if board[col2][row2] <=0 :
-            check = True
-            dice_buff=dice[0]
-          elif board[col2][row2] ==1:
-            check = True
-            dice_buff=dice[0]
-
-      elif row1+dice[1]==row2  and col1==col2==0 and row1<row2 and row2!=6 and row1!=6:
-        if helper(row1,row2,dice)==0:
-          if board[col2][row2] <=0 :
-            check = True
-            dice_buff=dice[1]
-          elif board[col2][row2] ==1:
-            check = True
-            dice_buff=dice[1]
-
-      elif row1-dice[0]==row2 and col1==col2==1 and row1>row2 and row2!=6 and row1!=6:
-        if helper(row1,row2,dice)==0:
-          if board[col2][row2] <=0 :
-            check = True
-            dice_buff=dice[0]
-          elif board[col2][row2] ==1:
-            check = True
-            dice_buff=dice[0]
-
-      elif row1-dice[1]==row2 and col1==col2==1 and row1>row2 and row2!=6 and row1!=6:
-        if helper(row1,row2,dice)==0:
-          if board[col2][row2] <=0 :
-            check = True
-            dice_buff=dice[1]
-          elif board[col2][row2] ==1:
-            check = True
-            dice_buff=dice[1]
-
+            elif row1-dice[1]==row2 and col1==col2==1 and row1>row2 and row2!=6 and row1!=6:
+              if helper(row1,row2,dice)==0:
+                if board[col2][row2] <=0 :
+                  check = True
+                  dice_buff=dice[1]
+                elif board[col2][row2] ==1:
+                  check = True
+                  dice_buff=dice[1]
       
    return check,dice_buff
 
@@ -535,26 +588,37 @@ def check_winner(board):
   return player
 
 def check_dice(board,dice):
-   aux = 0 
-   for j in range(len(board)):
-    for i in range(len(board[0])):
-      if i==dice :
-       if board[j][i] >1 or board[j][i] <-1:
-          return False
+  
+   if board[0][6] >0 :
+      j=1
+      for i in range(len(board[0])//2):
+          if i==dice-1 :
+            if board[j][i] <-1:
+              return False
+   elif board[1][6]<0:
+      j=0
+      for i in range(len(board[1])//2):      
+          if i==dice-1 :
+            if board[j][i] >1:
+              return False
+      
    return True
 
 def check_base(board):
-      suma1 = 0
-      suma2 = 0
-      for j in range(len(board[0])//2) :
-         suma1 += board[0][j]
-      for i in range(len(board[1])//2) :
-         suma2 += board[1][i]
-      if (suma1==15):
-         return suma1
-      else:
-         if(suma2==-15):
-           return suma2
+      j=0
+      for i in range(len(board)):
+        if i==0:
+          j==7
+          for j in range(len(board[0])) :
+            if board[i][j] > 0:
+              return False
+      for i in range(len(board)) :
+        if i==1:
+          j==7
+          for j in range(len(board[0])):
+            if board[i][j] < 0:
+              return False
+      return True
 # Player vs Computer game loop
 def player_vs_computer_game():
     print("Player vs Computer game")
@@ -616,12 +680,19 @@ def player_vs_computer_game():
             save_dice = dice_roll[:]
           if turn[0]==1:
             if dice_roll[0]!=dice_roll[1]: 
+              if check_dice(board,save_dice[0])==False and check_dice(board,save_dice[1])==False:
+                 moves1=0
+                 moves2=0
+              elif (check_dice(board,save_dice[0])==False and check_dice(board,save_dice[1])==True) or (check_dice(board,save_dice[0])==True and check_dice(board,save_dice[1])==False):
+                   moves1-=1
               if on_table[0] == True:
+                print(check_base(board))
+                if check_base(board):
+                    pull(pos_buff,board,width,height,dice_roll,turn)
+                    moves1-=1
                 move_pos.append(pos_buff)
                 print(move_pos)
               if(len(move_pos)==2):
-                if check_base(board)==15:
-                    pull(move_pos,board,width,height,dice_roll,turn)
                 check,dice_buff = check_move(move_pos,board,width,height,dice_roll,turn)
                 if check==True:
                   board = move_piece(move_pos,board,width,height,dice_roll)
@@ -649,7 +720,15 @@ def player_vs_computer_game():
                     screen.blit(text, message_rect.topleft)
                 move_pos = []
             elif dice_roll[0]==dice_roll[1]:
+              if check_dice(board,save_dice[0])==False and check_dice(board,save_dice[1])==False:
+                     moves1=0
+                     moves2=0
+              elif (check_dice(board,save_dice[0])==False and check_dice(board,save_dice[1])==True) or (check_dice(board,save_dice[0])==True and check_dice(board,save_dice[1])==False):
+                     moves2-=1
               if on_table[0] == True:
+                if check_base(board):
+                    pull(pos_buff,board,width,height,dice_roll,turn)
+                    moves2-=1
                 move_pos.append(pos_buff)
                 print(move_pos)
               if(len(move_pos)==2):
@@ -679,12 +758,16 @@ def player_vs_computer_game():
                  move_pos = random_move(board,board_image,turn,switch,dice_roll,on_table,width,height)
                  check,dice_buff=check_move(move_pos,board,width,height,dice_roll,turn)
                  if dice_roll[0]!=dice_roll[1]: 
+                      if check_dice(board,save_dice[0])==False and check_dice(board,save_dice[1])==False:
+                        moves1=0
+                      elif (check_dice(board,save_dice[0])==False and check_dice(board,save_dice[1])==True) or (check_dice(board,save_dice[0])==True and check_dice(board,save_dice[1])==False):
+                        moves2-=1
                       if on_table[0] == True:
+                        if check_base(board):
+                         pull(pos_buff,board,width,height,dice_roll,turn)
+                         moves1-=1
                         print(move_pos)
                       if(len(move_pos)==2):
-                        if check_base(board)==15:
-                            pull(move_pos,board,width,height,dice_roll,turn)
-                        check,dice_buff = check_move(move_pos,board,width,height,dice_roll,turn)
                         if check==True:
                           board = move_piece(move_pos,board,width,height,dice_roll)
                           if(dice_buff==dice_roll[0]):
@@ -711,7 +794,14 @@ def player_vs_computer_game():
                             screen.blit(text, message_rect.topleft)
                         move_pos = []
                  elif dice_roll[0]==dice_roll[1]:
+                    if check_dice(board,save_dice[0])==False and check_dice(board,save_dice[1])==False:
+                            moves2=0
+                    elif (check_dice(board,save_dice[0])==False and check_dice(board,save_dice[1])==True) or (check_dice(board,save_dice[0])==True and check_dice(board,save_dice[1])==False):
+                            moves2-=1
                     if on_table[0] == True:
+                      if check_base(board):
+                         pull(pos_buff,board,width,height,dice_roll,turn)
+                         moves2-=1
                       print(move_pos)
                     if(len(move_pos)==2):
                         check,dice_buff = check_move(move_pos,board,width,height,dice_roll,turn)
@@ -815,13 +905,19 @@ def player_vs_player_game():
             handle_click(pos_buff,board,board_image,turn,switch,dice_roll,on_table)
             if dice_roll[0]!=0 and dice_roll[1]!=0 :
               save_dice = dice_roll[:]
-            if dice_roll[0]!=dice_roll[1]: 
+            if dice_roll[0]!=dice_roll[1]:
+              if check_dice(board,save_dice[0])==False and check_dice(board,save_dice[1])==False:
+                 moves1=0
+                 moves2=0
+              elif (check_dice(board,save_dice[0])==False and check_dice(board,save_dice[1])==True) or (check_dice(board,save_dice[0])==True and check_dice(board,save_dice[1])==False):
+                   moves1-=1 
               if on_table[0] == True:
+                if check_base(board):
+                    pull(pos_buff,board,width,height,dice_roll,turn)
+                    moves1-=1
                 move_pos.append(pos_buff)
                 print(move_pos)
               if(len(move_pos)==2):
-                if check_base(board)==15:
-                    pull(move_pos,board,width,height,dice_roll,turn)
                 check,dice_buff = check_move(move_pos,board,width,height,dice_roll,turn)
                 print(check)
                 if check==True:
@@ -849,7 +945,15 @@ def player_vs_player_game():
                     screen.blit(text, message_rect.topleft)
                 move_pos = []
             elif dice_roll[0]==dice_roll[1]:
+              if check_dice(board,save_dice[0])==False and check_dice(board,save_dice[1])==False:
+                 moves1=0
+                 moves2=0
+              elif (check_dice(board,save_dice[0])==False and check_dice(board,save_dice[1])==True) or (check_dice(board,save_dice[0])==True and check_dice(board,save_dice[1])==False):
+                   moves1-=1
               if on_table[0] == True:
+                if check_base(board):
+                    pull(pos_buff,board,width,height,dice_roll,turn)
+                    moves2-=1
                 move_pos.append(pos_buff)
                 print(move_pos)
               if(len(move_pos)==2):
