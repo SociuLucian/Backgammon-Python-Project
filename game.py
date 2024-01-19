@@ -191,15 +191,17 @@ def handle_click(pos, board, board_image,turn,switch,dice_roll,on_table):
    
 def roll_dice():
     return random.randint(1, 6), random.randint(1, 6)
+
 def random_move(board,board_image,turn,switch,dice_roll,on_table,screen_width,screen_height):
    move_pos = []
+   pos_buffer2 = (0,0)
    while(len(move_pos)<2):
-     
-    pos_buffer = (random.randint(800,800),random.randint(800,800))
-    handle_click(pos_buffer,board,board_image,turn,switch,dice_roll,on_table)
-    if(on_table[0]==True):
-       move_pos.append(pos_buffer)
-    
+      pos_buffer = (random.randint(0,800),random.randint(0,800))
+      if(pos_buffer!=pos_buffer2):
+        handle_click(pos_buffer,board,board_image,turn,switch,dice_roll,on_table)
+        if(on_table[0]==True):
+          move_pos.append(pos_buffer)
+      pos_buffer2 = pos_buffer
    return move_pos
  
 def move_piece(move, board, screen_width, screen_height, dice):
@@ -264,236 +266,256 @@ def pull(move, board, screen_width, screen_height,dice,turn):
              elif i == dice[1] :
                    if board[col1][row1] <0 and col2==1 and 7<=row2<=12:
                       board[col1][row1] +=1 
-                         
+
+def helper(row1,row2,dice):
+       for i in range(row1,row1 + dice[0]):
+         if i==6 and row1 < 6 and row2>6:
+            return 1
+       for i in range(row1,row1 + dice[1]):
+         if i==6 and row1<6 and row2>6:
+           return 1
+       for i in range(row1-dice[0],row1):
+         if i==6 and row1>6 and row2<6:
+           return 1
+       for i in range(row1-dice[1],row1):
+         if i==6 and row1>6 and row2<6:
+           return 1
+       return 0       
+
 def check_move(move,board,screen_width,screen_height,dice,turn):
    
    col1,row1,cell_width1,cell_height1 = get_board_pos(move[0],board,screen_width,screen_height)
    col2,row2,cell_width1,cell_height1 = get_board_pos(move[1],board,screen_width,screen_height)
-   def helper(col1,row1,dice):
-     if col1 == 0:
-       for i in range(row1,row1 + dice[0]):
-         if i==6 :
-            return 1
-       for i in range(row1,row1 + dice[1]):
-         if i==6:
-           return 1
-       for i in range(row1-dice[0],row1):
-         if i==6:
-           return 1
-       for i in range(row1-dice[1],row1):
-         if i==6:
-           return 1
    check = False
-   dice_buff=[0,0]
+   dice_buff=0
+    
    if turn[0]==1 : 
-    if board[col1][row1]>0:
-      if row1 == 6 and board[col2][row2] == board[1][dice[0]-1]:
-         if board[col2][row2] >=0:
-            check = True
-            dice_buff[0]=dice[0]
-         elif board[col2][row2] ==-1:
-            check = True
-            dice_buff[0]=dice[0]
+        if board[col1][row1]>0:
+          if row1 == 6 and col2 == 1 and row2 == dice[0]-1 :
+            if board[col2][row2] >=0:
+                check = True
+                dice_buff=dice[0]
+            elif board[col2][row2] ==-1:
+                check = True
+                dice_buff=dice[0]
 
-      elif row1 == 6 and board[col2][row2] == board[1][dice[1]-1]:
-         if board[col2][row2] >=0:
-            check = True
-            dice_buff[1]=dice[1]
-         elif board[col2][row2] ==-1:
-            check = True
-            dice_buff[1]=dice[1]
+          elif row1 == 6 and col2 == 1 and row2 == dice[1]-1:
+            if board[col2][row2] >=0:
+                check = True
+                dice_buff=dice[1]
+            elif board[col2][row2] ==-1:
+                check = True
+                dice_buff=dice[1]
 
-      elif row1 == 6 and board[col2][row2] == board[0][dice[1]-1]:
-         if board[col2][row2] <-1:
-            check = False
-            dice_buff[1]=dice[1]
+          elif row1 == 6 and col2 == 1 and row2 == dice[1]-1:
+            if board[col2][row2] <-1:
+                check = False
+                dice_buff=dice[1]
 
-      elif row1 == 6 and board[col2][row2] == board[0][dice[0]-1]:
-         if board[col2][row2] <-1:
-            check = False
-            dice_buff[1]=dice[1]
-      elif 12-(row1+dice[0]-13) == row2 and col1==1 and col2==0:
-        if board[col2][row2] >=0 :
-          check = True
-          dice_buff[0]=dice[0]
-        elif board[col2][row2] ==-1:
-          check = True 
-          dice_buff[0]=dice[0]
+          elif row1 == 6 and col2 == 1 and row2 == dice[0]-1:
+            if board[col2][row2] <-1:
+                check = False
+                dice_buff=dice[1]
+                
+          elif 12-(row1+dice[0]-13) == row2 and col1==1 and col2==0 :
+            if board[col2][row2] >=0 :
+              check = True
+              dice_buff=dice[0]
+            elif board[col2][row2] ==-1:
+              check = True 
+              dice_buff=dice[0]
 
-      elif 12-(row1+dice[1]-13) == row2 and col1==1 and col2==0 :
-        if board[col2][row2] >=0 :
-          check = True
-          dice_buff[1]=dice[1]
-        elif board[col2][row2] ==-1:
-          check = True 
-          dice_buff[1]=dice[1]
+          elif 12-(row1+dice[1]-13) == row2 and col1==1 and col2==0 :
+            if board[col2][row2] >=0 :
+              check = True
+              dice_buff=dice[1]
+            elif board[col2][row2] ==-1:
+              check = True 
+              dice_buff=dice[1]
 
-      elif row1<6 and row1+dice[0]+1==row2 and col1==col2==1 and row1<row2:
-        if board[col2][row2] >=0 :
-          check = True
-          dice_buff[0]=dice[0]
-        elif board[col2][row2] ==-1:
-          check = True
-          dice_buff[0]=dice[0]
+          elif row1<6 and row1+dice[0]+1==row2 and 6<=row1+dice[0]<12 and col1==col2==1 and row1<row2 and row2!=6 and row1!=6:
+            if board[col2][row2] >=0 :
+              check = True
+              dice_buff=dice[0]
+            elif board[col2][row2] ==-1:
+              check = True
+              dice_buff=dice[0]
 
-      elif row1>6 and row1-dice[0]-1==row2 and row1-dice[0]-1<=6 and col1==col2==0 and row1>row2:
-        if board[col2][row2] >=0 :
-          check = True
-          dice_buff[0]=dice[0]
-        elif board[col2][row2] ==-1:
-          check = True 
-          dice_buff[0]=dice[0]
+          elif row1>6 and row1-dice[0]-1==row2 and row1-dice[0]-1<=6 and col1==col2==0 and row1>row2 and row2!=6 and row1!=6:
+            if board[col2][row2] >=0 :
+              check = True
+              dice_buff=dice[0]
+            elif board[col2][row2] ==-1:
+              check = True 
+              dice_buff=dice[0]
 
-      elif row1<6 and row1+dice[1]+1==row2 and col1==col2==1 and row1<row2:
-        if board[col2][row2] >=0 :
-          check = True
-          dice_buff[1]=dice[1]
-        elif board[col2][row2] ==-1:
-          check = True
-          dice_buff[1]=dice[1]
-          
-      elif row1+dice[0] == row2 and col1==col2==1 and row1<row2:
-        if board[col2][row2] >=0 :
-          check = True
-          dice_buff[0]=dice[0]
-        elif board[col2][row2] ==-1:
-          check = True
-          dice_buff[0]=dice[0] 
-          
-      elif row1+dice[1]==row2 and col1==col2==1 and row1<row2:
-        if board[col2][row2] >=0 :
-          check = True
-          dice_buff[1]=dice[1]
-        elif board[col2][row2] ==-1:
-          check = True
-          dice_buff[1]=dice[1]
+          elif row1<6 and row1+dice[1]+1==row2 and 6<=row1+dice[1]+1<12 and col1==col2==1 and row1<row2 and row2!=6 and row1!=6:
+            if board[col2][row2] >=0 :
+              check = True
+              dice_buff=dice[1]
+            elif board[col2][row2] ==-1:
+              check = True
+              dice_buff=dice[1]
 
-      elif row1-dice[0]==row2 and col1==col2==0 and row1>row2:
-        if board[col2][row2] >=0 :
-          check = True
-          dice_buff[0]=dice[0]
-        elif board[col2][row2] ==-1:
-          check = True
-          dice_buff[0]=dice[0]
+          elif row1>6 and row1-dice[1]-1==row2 and row1-dice[1]-1<=6 and col1==col2==0 and row1>row2 and row2!=6 and row1!=6:
+            if board[col2][row2] >=0 :
+              check = True
+              dice_buff=dice[1]
+            elif board[col2][row2] ==-1:
+              check = True 
+              dice_buff=dice[1]  
+                  
+          elif row1+dice[0] == row2 and col1==col2==1 and row1<row2 and row2!=6 and row1!=6:
+            if helper(row1,row2,dice)==0:
+              if board[col2][row2] >=0 :
+                check = True
+                dice_buff=dice[0]
+              elif board[col2][row2] ==-1:
+                check = True
+                dice_buff=dice[0]
+              
+          elif row1+dice[1]==row2 and col1==col2==1 and row1<row2 and row2!=6 and row1!=6:
+            if helper(row1,row2,dice)==0:
+              if board[col2][row2] >=0 :
+                check = True
+                dice_buff=dice[1]
+              elif board[col2][row2] ==-1:
+                check = True
+                dice_buff=dice[1]
 
-      elif row1-dice[1]==row2 and col1==col2==0 and row1>row2:
-        if board[col2][row2] >=0 :
-          check = True
-          dice_buff[1]=dice[1]
-        elif board[col2][row2] ==-1:
-          check = True
-          dice_buff[1]=dice[1]
+          elif row1-dice[0]==row2 and col1==col2==0 and row1>row2 and row2!=6 and row1!=6:
+            if helper(row1,row2,dice)==0:
+              if board[col2][row2] >=0 :
+                check = True
+                dice_buff=dice[0]
+              elif board[col2][row2] ==-1:
+                check = True
+                dice_buff=dice[0]
+
+          elif row1-dice[1]==row2 and col1==col2==0 and row1>row2 and row2!=6 and row1!=6:
+            if helper(row1,row2,dice)==0:
+              if board[col2][row2] >=0 :
+                check = True
+                dice_buff=dice[1]
+              elif board[col2][row2] ==-1:
+                check = True
+                dice_buff=dice[1]
 
    elif turn[0]==2:       
     if board[col1][row1]<0:
-      if row1 == 6 and board[col2][row2] == board[0][dice[0]-1]:
+      if row1 == 6 and col2 == 0 and row2 == dice[0]-1 :
          if board[col2][row2] <=0:
             check = True
-            dice_buff[0]=dice[0]
+            dice_buff=dice[0]
          elif board[col2][row2] ==1:
             check = True 
-            dice_buff[0]=dice[0]
+            dice_buff=dice[0]
 
-      elif row1 == 6 and board[col2][row2] == board[0][dice[1]-1]:
+      elif row1 == 6 and col2 == 0 and row2 == dice[1]-1:
          if board[col2][row2] <=0:
             check = True
-            dice_buff[1]=dice[1]
+            dice_buff=dice[1]
          elif board[col2][row2] ==1:
             check = True 
-            dice_buff[1]=dice[1]
+            dice_buff=dice[1]
 
-      elif row1 == 6 and board[col2][row2] == board[0][dice[0]-1]:
+      elif row1 == 6 and col2 == 0 and row2 == dice[0]-1:
          if board[col2][row2] >0:
             check = False
-            dice_buff[1]=dice[1]
+            dice_buff=dice[1]
 
-      elif row1 == 6 and board[col2][row2] == board[0][dice[1]-1]:
+      elif row1 == 6 and col2 == 0 and row2 == dice[1]-1:
          if board[col2][row2] >0:
             check = False
-            dice_buff[0]=dice[0]
+            dice_buff=dice[0]
             
-      elif 12-(row1+dice[0]-13) == row2 and col1==0 and col2==1:
+      elif 12-(row1+dice[0]-13) == row2 and col1==0 and col2==1 :
         if board[col2][row2] <=0 :
           check = True
-          dice_buff[0]=dice[0]
+          dice_buff=dice[0]
         elif board[col2][row2] ==1:
           check = True 
-          dice_buff[0]=dice[0]
+          dice_buff=dice[0]
 
       elif 12-(row1+dice[1]-13) == row2 and col1==0 and col2==1:
         if board[col2][row2] <=0 :
           check = True
-          dice_buff[1]=dice[1]
+          dice_buff=dice[1]
         elif board[col2][row2] ==1:
           check = True 
-          dice_buff[1]=dice[1]
+          dice_buff=dice[1]
 
-      elif row1<6 and row1+dice[0]+1==row2  and col1==col2==0 and row1<row2:
+      elif row1<6 and row1+dice[0]+1==row2  and col1==col2==0 and row1<row2 and row2!=6 and row1!=6:
         if board[col2][row2] <=0 :
           check = True
-          dice_buff[0]=dice[0]
+          dice_buff=dice[0]
         elif board[col2][row2] ==1:
           check = True
-          dice_buff[0]=dice[0]
+          dice_buff=dice[0]
 
-      elif row1<6 and row1+dice[1]+1==row2  and col1==col2==1 and row1<row2:
+      elif row1<6 and row1+dice[1]+1==row2  and col1==col2==0 and row1<row2 and row2!=6 and row1!=6:
         if board[col2][row2] <=0 :
           check = True
-          dice_buff[1]=dice[1]
+          dice_buff=dice[1]
         elif board[col2][row2] ==1:
           check = True
-          dice_buff[1]=dice[1]
+          dice_buff=dice[1]
 
-      elif row1>6 and row1-dice[0]-1==row2 and row1-dice[0]-1<=6 and col1==col2==1 and row1>row2:
+      elif row1>6 and row1-dice[0]-1==row2 and row1-dice[0]-1<=6 and col1==col2==1 and row1>row2 and row2!=6 and row1!=6:
         if board[col2][row2] <=0 :
           check = True
-          dice_buff[0]=dice[0]
+          dice_buff=dice[0]
         elif board[col2][row2] ==1:
           check = True
-          dice_buff[0]=dice[0]
+          dice_buff=dice[0]
 
-      elif row1>6 and row1-dice[1]-1==row2 and row1-dice[1]-1<=6 and col1==col2==1 and row1>row2:
+      elif row1>6 and row1-dice[1]-1==row2 and row1-dice[1]-1<=6 and col1==col2==1 and row1>row2 and row2!=6 and row1!=6:
         if board[col2][row2] <=0 :
           check = True
-          dice_buff[1]=dice[1]
+          dice_buff=dice[1]
         elif board[col2][row2] ==1:
           check = True
-          dice_buff[1]=dice[1]
+          dice_buff=dice[1]
                 
-      elif row1+dice[0] == row2 and col1==col2==0 and row1<row2 :
-        if board[col2][row2] <=0 :
-          check = True
-          dice_buff[0]=dice[0]
-        elif board[col2][row2] ==1:
-          check = True
-          dice_buff[0]=dice[0]
+      elif row1+dice[0] == row2 and col1==col2==0 and row1<row2 and row2!=6 and row1!=6:
+        if helper(row1,row2,dice)==0:
+          if board[col2][row2] <=0 :
+            check = True
+            dice_buff=dice[0]
+          elif board[col2][row2] ==1:
+            check = True
+            dice_buff=dice[0]
 
-      elif row1+dice[1]==row2  and col1==col2==0 and row1<row2:
-        if board[col2][row2] <=0 :
-          check = True
-          dice_buff[1]=dice[1]
-        elif board[col2][row2] ==1:
-          check = True
-          dice_buff[1]=dice[1]
+      elif row1+dice[1]==row2  and col1==col2==0 and row1<row2 and row2!=6 and row1!=6:
+        if helper(row1,row2,dice)==0:
+          if board[col2][row2] <=0 :
+            check = True
+            dice_buff=dice[1]
+          elif board[col2][row2] ==1:
+            check = True
+            dice_buff=dice[1]
 
-      elif row1-dice[0]==row2 and col1==col2==1 and row1>row2:
-        if board[col2][row2] <=0 :
-          check = True
-          dice_buff[0]=dice[0]
-        elif board[col2][row2] ==1:
-          check = True
-          dice_buff[0]=dice[0]
+      elif row1-dice[0]==row2 and col1==col2==1 and row1>row2 and row2!=6 and row1!=6:
+        if helper(row1,row2,dice)==0:
+          if board[col2][row2] <=0 :
+            check = True
+            dice_buff=dice[0]
+          elif board[col2][row2] ==1:
+            check = True
+            dice_buff=dice[0]
 
-      elif row1-dice[1]==row2 and col1==col2==1 and row1>row2:
-        if board[col2][row2] <=0 :
-          check = True
-          dice_buff[1]=dice[1]
-        elif board[col2][row2] ==1:
-          check = True
-          dice_buff[1]=dice[1]
+      elif row1-dice[1]==row2 and col1==col2==1 and row1>row2 and row2!=6 and row1!=6:
+        if helper(row1,row2,dice)==0:
+          if board[col2][row2] <=0 :
+            check = True
+            dice_buff=dice[1]
+          elif board[col2][row2] ==1:
+            check = True
+            dice_buff=dice[1]
 
       
    return check,dice_buff
+
 def check_winner(board):
   winner1 = 0
   winner2 = 0
@@ -513,21 +535,15 @@ def check_winner(board):
   return player
 
 def check_dice(board,dice):
-   check = True
-   aux =0 
+   aux = 0 
    for j in range(len(board)):
     for i in range(len(board[0])):
-      if i==dice[0]-1 :
+      if i==dice :
        if board[j][i] >1 or board[j][i] <-1:
-          aux +=1
-      if i==dice[1]-1 :
-         if board[j][i] >1 or board[j][i] <-1:
-          aux +=1   
-    if aux ==2:
-       check = False
-   return check
+          return False
+   return True
 
-def check_base(board,final):
+def check_base(board):
       suma1 = 0
       suma2 = 0
       for j in range(len(board[0])//2) :
@@ -535,10 +551,10 @@ def check_base(board,final):
       for i in range(len(board[1])//2) :
          suma2 += board[1][i]
       if (suma1==15):
-         final[0] = 1
+         return suma1
       else:
          if(suma2==-15):
-           final[0] = 1
+           return suma2
 # Player vs Computer game loop
 def player_vs_computer_game():
     print("Player vs Computer game")
@@ -596,57 +612,42 @@ def player_vs_computer_game():
         elif event.type == pygame.MOUSEBUTTONDOWN:
           pos_buff = pygame.mouse.get_pos()
           handle_click(pos_buff,board,board_image,turn,switch,dice_roll,on_table)
+          if dice_roll[0]!=0 and dice_roll[1]!=0 :
+            save_dice = dice_roll[:]
           if turn[0]==1:
-           if check_dice(board,dice_roll):
             if dice_roll[0]!=dice_roll[1]: 
               if on_table[0] == True:
                 move_pos.append(pos_buff)
                 print(move_pos)
-                if(len(move_pos)==2):
-                     if check_base(board)==15 or check_base(board) ==-15:
-                         pull(move_pos,board,width,height,dice_roll,turn)
-                         draw_board()
-                         draw_initial_pieces(board)
-                         piece_x = 50 + 10 * 54 # identation + row * board cell size 
-                         piece_y = 10
-                         dice_image1 = pygame.image.load(f"Images/you_dice_{dice_buff[0] if dice_buff[0] !=0 else dice_roll[0]}.png")
-                         dice_image2 = pygame.image.load(f"Images/you_dice_{dice_buff[1] if dice_buff[1] !=0 else dice_roll[0]}.png")
-                         screen.blit(dice_image1, (piece_x, piece_y))
-                         piece_x += dice_image1.get_height()
-                         screen.blit(dice_image2, (piece_x, piece_y))
-                         text = font.render(f"Turn: Player {turn[0]}", True, (0, 0, 0))
-                         pygame.draw.rect(screen, WHITE, (10, 10, 130, 30))
-                         screen.blit(text, (10, 10))
-                         print(check_move(move_pos,board,width,height,dice_roll,turn),moves1)
-                         moves1 -= 1
-                else:  
-                         pygame.draw.rect(screen, WHITE, message_rect)
-                         text = message_font.render("Invalid Move! Try Again!", True, BLACK)
-                         screen.blit(text, message_rect.topleft)
-                move_pos = []
+              if(len(move_pos)==2):
+                if check_base(board)==15:
+                    pull(move_pos,board,width,height,dice_roll,turn)
                 check,dice_buff = check_move(move_pos,board,width,height,dice_roll,turn)
-
                 if check==True:
-                   if(dice_buff[0]==dice_roll[0]):
+                  board = move_piece(move_pos,board,width,height,dice_roll)
+                  if(dice_buff==dice_roll[0]):
                         dice_roll[0] =0
-                   elif dice_buff[1]==dice_roll[1]:
-                         dice_roll[1] =0
-                   board = move_piece(move_pos,board,width,height,dice_roll)
-                   check_dice(board,dice_roll)
-                   draw_board()
-                   draw_initial_pieces(board)
-                   piece_x = 50 + 10 * 54 # identation + row * board cell size 
-                   piece_y = 10
-                   dice_image1 = pygame.image.load(f"Images/you_dice_{dice_buff[0] if dice_buff[0] !=0 else dice_roll[0]}.png")
-                   dice_image2 = pygame.image.load(f"Images/you_dice_{dice_buff[1] if dice_buff[1] !=0 else dice_roll[0]}.png")
-                   screen.blit(dice_image1, (piece_x, piece_y))
-                   piece_x += dice_image1.get_height()
-                   screen.blit(dice_image2, (piece_x, piece_y))
-                   text = font.render(f"Turn: Player {turn[0]}", True, (0, 0, 0))
-                   pygame.draw.rect(screen, WHITE, (10, 10, 130, 30))
-                   screen.blit(text, (10, 10))
-                   print(check_move(move_pos,board,width,height,dice_roll,turn),moves1)
-                   moves1 -= 1
+                  elif dice_buff==dice_roll[1]:
+                        dice_roll[1] =0
+                  draw_board()
+                  draw_initial_pieces(board)
+                  piece_x = 50 + 10 * 54 # identation + row * board cell size 
+                  piece_y = 10
+                  dice_image1 = pygame.image.load(f"Images/you_dice_{save_dice[0]}.png")
+                  dice_image2 = pygame.image.load(f"Images/you_dice_{save_dice[1]}.png")
+                  screen.blit(dice_image1, (piece_x, piece_y))
+                  piece_x += dice_image1.get_height()
+                  screen.blit(dice_image2, (piece_x, piece_y))
+                  text = font.render(f"Turn: Player {turn[0]}", True, (0, 0, 0))
+                  pygame.draw.rect(screen, WHITE, (10, 10, 130, 30))
+                  screen.blit(text, (10, 10))
+                  print(check_move(move_pos,board,width,height,dice_roll,turn),moves1)
+                  moves1 -= 1
+                else:  
+                    pygame.draw.rect(screen, WHITE, message_rect)
+                    text = message_font.render("Invalid Move! Try Again!", True, BLACK)
+                    screen.blit(text, message_rect.topleft)
+                move_pos = []
             elif dice_roll[0]==dice_roll[1]:
               if on_table[0] == True:
                 move_pos.append(pos_buff)
@@ -654,17 +655,13 @@ def player_vs_computer_game():
               if(len(move_pos)==2):
                   check,dice_buff = check_move(move_pos,board,width,height,dice_roll,turn)
                   if check==True:
-                    if(dice_buff[0]==dice_roll[0]):
-                        dice_roll[0] =0
-                    elif dice_buff[1]==dice_roll[1]:
-                         dice_roll[1] =0  
                     board = move_piece(move_pos,board,width,height,dice_roll)
                     draw_board()
                     draw_initial_pieces(board)
                     piece_x = 50 + 10 * 54 # identation + row * board cell size 
                     piece_y = 10
-                    dice_image1 = pygame.image.load(f"Images/you_dice_{dice_buff[0] if dice_buff[0] !=0 else dice_roll[0]}.png")
-                    dice_image2 = pygame.image.load(f"Images/you_dice_{dice_buff[1] if dice_buff[1] !=0 else dice_roll[0]}.png")
+                    dice_image1 = pygame.image.load(f"Images/you_dice_{save_dice[0]}.png")
+                    dice_image2 = pygame.image.load(f"Images/you_dice_{save_dice[1]}.png")
                     screen.blit(dice_image1, (piece_x, piece_y))
                     piece_x += dice_image1.get_height()
                     screen.blit(dice_image2, (piece_x, piece_y))
@@ -677,35 +674,75 @@ def player_vs_computer_game():
                     text = message_font.render("Invalid Move! Try Again!", True, BLACK)
                     screen.blit(text, message_rect.topleft)
                   move_pos = []
-           else:
-              switch = 0 
-              turn[0] = 2 if turn[0] == 1 else 1
           elif(turn[0] ==2):
-              check = False
-              while(check==False):
+            while(turn[0] ==2):
                  move_pos = random_move(board,board_image,turn,switch,dice_roll,on_table,width,height)
-                 if check_move(move_pos,board,width,height,dice_roll,turn):
-                  check = True
-                  if(dice_buff[0]==dice_roll[0]):
-                        dice_roll[0] =0
-                  elif dice_buff[1]==dice_roll[1]:
-                         dice_buff[1] =0  
-                  board = move_piece(move_pos,board,width,height,dice_roll)
-                  draw_board()
-                  draw_initial_pieces(board)
-                  piece_x = 50 + 10 * 54 # identation + row * board cell size 
-                  piece_y = 10
-                  dice_image1 = pygame.image.load(f"Images/you_dice_{dice_buff[0] if dice_buff[0] !=0 else dice_roll[0]}.png")
-                  dice_image2 = pygame.image.load(f"Images/you_dice_{dice_buff[1] if dice_buff[1] !=0 else dice_roll[0]}.png")
-                  screen.blit(dice_image1, (piece_x, piece_y))
-                  piece_x += dice_image1.get_height()
-                  screen.blit(dice_image2, (piece_x, piece_y))
-                  text = font.render(f"Turn: Player {turn[0]}", True, (0, 0, 0))
-                  pygame.draw.rect(screen, WHITE, (10, 10, 130, 30))
-                  screen.blit(text, (10, 10))
-                  print(check_move(move_pos,board,width,height,dice_roll,turn),moves2)
-                  moves2 -= 1
-                 move_pos = []  
+                 check,dice_buff=check_move(move_pos,board,width,height,dice_roll,turn)
+                 if dice_roll[0]!=dice_roll[1]: 
+                      if on_table[0] == True:
+                        print(move_pos)
+                      if(len(move_pos)==2):
+                        if check_base(board)==15:
+                            pull(move_pos,board,width,height,dice_roll,turn)
+                        check,dice_buff = check_move(move_pos,board,width,height,dice_roll,turn)
+                        if check==True:
+                          board = move_piece(move_pos,board,width,height,dice_roll)
+                          if(dice_buff==dice_roll[0]):
+                                dice_roll[0] =0
+                          elif dice_buff==dice_roll[1]:
+                                dice_roll[1] =0
+                          draw_board()
+                          draw_initial_pieces(board)
+                          piece_x = 50 + 10 * 54 # identation + row * board cell size 
+                          piece_y = 10
+                          dice_image1 = pygame.image.load(f"Images/you_dice_{save_dice[0]}.png")
+                          dice_image2 = pygame.image.load(f"Images/you_dice_{save_dice[1]}.png")
+                          screen.blit(dice_image1, (piece_x, piece_y))
+                          piece_x += dice_image1.get_height()
+                          screen.blit(dice_image2, (piece_x, piece_y))
+                          text = font.render(f"Turn: Player {turn[0]}", True, (0, 0, 0))
+                          pygame.draw.rect(screen, WHITE, (10, 10, 130, 30))
+                          screen.blit(text, (10, 10))
+                          print(check_move(move_pos,board,width,height,dice_roll,turn),moves1)
+                          moves1 -= 1
+                        else:  
+                            pygame.draw.rect(screen, WHITE, message_rect)
+                            text = message_font.render("Invalid Move! Try Again!", True, BLACK)
+                            screen.blit(text, message_rect.topleft)
+                        move_pos = []
+                 elif dice_roll[0]==dice_roll[1]:
+                    if on_table[0] == True:
+                      print(move_pos)
+                    if(len(move_pos)==2):
+                        check,dice_buff = check_move(move_pos,board,width,height,dice_roll,turn)
+                        if check==True:
+                          board = move_piece(move_pos,board,width,height,dice_roll)
+                          draw_board()
+                          draw_initial_pieces(board)
+                          piece_x = 50 + 10 * 54 # identation + row * board cell size 
+                          piece_y = 10
+                          dice_image1 = pygame.image.load(f"Images/you_dice_{save_dice[0]}.png")
+                          dice_image2 = pygame.image.load(f"Images/you_dice_{save_dice[1]}.png")
+                          screen.blit(dice_image1, (piece_x, piece_y))
+                          piece_x += dice_image1.get_height()
+                          screen.blit(dice_image2, (piece_x, piece_y))
+                          text = font.render(f"Turn: Player {turn[0]}", True, (0, 0, 0))
+                          pygame.draw.rect(screen, WHITE, (10, 10, 130, 30))
+                          screen.blit(text, (10, 10))
+                          moves2 -= 1
+                        else:  
+                          pygame.draw.rect(screen, WHITE, message_rect)
+                          text = message_font.render("Invalid Move! Try Again!", True, BLACK)
+                          screen.blit(text, message_rect.topleft)
+                        move_pos = []
+                    if moves1 == 0 or moves2 == 0:
+                        moves1=2
+                        moves2=4
+                        turn[0] = 2 if turn[0] == 1 else 1
+                        switch[0]=1
+                        text = font.render(f"Turn: Player {turn[0]}", True, (0, 0, 0))
+                        pygame.draw.rect(screen, WHITE, (10, 10, 130, 30))
+                        screen.blit(text, (10, 10))
           if moves1 == 0 or moves2 == 0:
                moves1=2
                moves2=4
@@ -759,7 +796,6 @@ def player_vs_player_game():
     move_pos = []
     moves1=2
     moves2=4
-    final = [0] 
     while True:
      if check_winner(board) == 1:
         pygame.draw.rect(screen, WHITE, message_rect)
@@ -777,50 +813,36 @@ def player_vs_player_game():
         elif event.type == pygame.MOUSEBUTTONDOWN:
             pos_buff = pygame.mouse.get_pos()
             handle_click(pos_buff,board,board_image,turn,switch,dice_roll,on_table)
+            if dice_roll[0]!=0 and dice_roll[1]!=0 :
+              save_dice = dice_roll[:]
             if dice_roll[0]!=dice_roll[1]: 
               if on_table[0] == True:
                 move_pos.append(pos_buff)
-                print(on_table)
                 print(move_pos)
-                check_base(board,final)
-              if final[0] == 1 :
-                     pull(pos_buff,board,width,height,dice_roll,turn)
-                     draw_board()
-                     draw_initial_pieces(board)
-                     piece_x = 50 + 10 * 54 # identation + row * board cell size 
-                     piece_y = 10
-                     dice_image1 = pygame.image.load(f"Images/you_dice_{dice_buff[0] if dice_buff[0] !=0 else dice_roll[0]}.png")
-                     dice_image2 = pygame.image.load(f"Images/you_dice_{dice_buff[1] if dice_buff[1] !=0 else dice_roll[0]}.png")
-                     screen.blit(dice_image1, (piece_x, piece_y))
-                     piece_x += dice_image1.get_height()
-                     screen.blit(dice_image2, (piece_x, piece_y))
-                     text = font.render(f"Turn: Player {turn[0]}", True, (0, 0, 0))
-                     pygame.draw.rect(screen, WHITE, (10, 10, 130, 30))
-                     screen.blit(text, (10, 10))
-                     print(check_move(move_pos,board,width,height,dice_roll,turn),moves1)
-                     moves1 -= 1
               if(len(move_pos)==2):
+                if check_base(board)==15:
+                    pull(move_pos,board,width,height,dice_roll,turn)
                 check,dice_buff = check_move(move_pos,board,width,height,dice_roll,turn)
                 print(check)
                 if check==True:
-                   if(dice_buff[0]==dice_roll[0]):
+                  if(dice_buff==dice_roll[0]):
                         dice_roll[0] =0
-                   elif dice_buff[1]==dice_roll[1]:
-                         dice_roll[1] =0
-                   board = move_piece(move_pos,board,width,height,dice_roll)
-                   draw_board()
-                   draw_initial_pieces(board)
-                   piece_x = 50 + 10 * 54 # identation + row * board cell size 
-                   piece_y = 10
-                   dice_image1 = pygame.image.load(f"Images/you_dice_{dice_buff[0] if dice_buff[0] !=0 else dice_roll[0]}.png")
-                   dice_image2 = pygame.image.load(f"Images/you_dice_{dice_buff[1] if dice_buff[1] !=0 else dice_roll[0]}.png")
-                   screen.blit(dice_image1, (piece_x, piece_y))
-                   piece_x += dice_image1.get_height()
-                   screen.blit(dice_image2, (piece_x, piece_y))
-                   text = font.render(f"Turn: Player {turn[0]}", True, (0, 0, 0))
-                   pygame.draw.rect(screen, WHITE, (10, 10, 130, 30))
-                   screen.blit(text, (10, 10))
-                   moves1 -= 1
+                  elif dice_buff==dice_roll[1]:
+                        dice_roll[1] =0
+                  board = move_piece(move_pos,board,width,height,dice_roll)
+                  draw_board()
+                  draw_initial_pieces(board)
+                  piece_x = 50 + 10 * 54 # identation + row * board cell size 
+                  piece_y = 10
+                  dice_image1 = pygame.image.load(f"Images/you_dice_{save_dice[0]}.png")
+                  dice_image2 = pygame.image.load(f"Images/you_dice_{save_dice[1]}.png")
+                  screen.blit(dice_image1, (piece_x, piece_y))
+                  piece_x += dice_image1.get_height()
+                  screen.blit(dice_image2, (piece_x, piece_y))
+                  text = font.render(f"Turn: Player {turn[0]}", True, (0, 0, 0))
+                  pygame.draw.rect(screen, WHITE, (10, 10, 130, 30))
+                  screen.blit(text, (10, 10))
+                  moves1 -= 1
                 else:  
                     pygame.draw.rect(screen, WHITE, message_rect)
                     text = message_font.render("Invalid Move! Try Again!", True, BLACK)
@@ -832,14 +854,15 @@ def player_vs_player_game():
                 print(move_pos)
               if(len(move_pos)==2):
                   check,dice_buff = check_move(move_pos,board,width,height,dice_roll,turn)
+                  print(check)
                   if check==True:
                     board = move_piece(move_pos,board,width,height,dice_roll)
                     draw_board()
                     draw_initial_pieces(board)
                     piece_x = 50 + 10 * 54 # identation + row * board cell size 
                     piece_y = 10
-                    dice_image1 = pygame.image.load(f"Images/you_dice_{dice_roll[0] if dice_roll[0] !=0 else dice_buff}.png")
-                    dice_image2 = pygame.image.load(f"Images/you_dice_{dice_roll[1] if dice_roll[1] !=0 else dice_buff}.png")
+                    dice_image1 = pygame.image.load(f"Images/you_dice_{save_dice[0]}.png")
+                    dice_image2 = pygame.image.load(f"Images/you_dice_{save_dice[1]}.png")
                     screen.blit(dice_image1, (piece_x, piece_y))
                     piece_x += dice_image1.get_height()
                     screen.blit(dice_image2, (piece_x, piece_y))
